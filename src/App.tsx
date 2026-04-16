@@ -3,9 +3,11 @@ import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download, FileText, Filter, RotateCcw, Search, ChevronUp, ChevronDown } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import './App.css';
 import { estimateMarks, estimateRank } from './utils/rankLogic';
 import rawData from './data.json';
+
 
 interface DataRow {
   Institute: string;
@@ -22,17 +24,17 @@ type SortCol = keyof DataRow | 'Status';
 function App() {
   const [data] = useState<DataRow[]>(rawData as DataRow[]);
   const [filteredData, setFilteredData] = useState<DataRow[]>(rawData as DataRow[]);
-  
+
   // Filters
   const [category, setCategory] = useState<string>('OPEN');
   const [institute, setInstitute] = useState<string>('All');
   const [gender, setGender] = useState<string>('All');
   const [search, setSearch] = useState<string>('');
-  
+
   // Marks / Rank sync
   const [marksStr, setMarksStr] = useState<string>('');
   const [rankStr, setRankStr] = useState<string>('');
-  
+
   // Toggles & Sorting
   const [safeOnly, setSafeOnly] = useState<boolean>(false);
   const [sortCol, setSortCol] = useState<SortCol>('Closing');
@@ -87,25 +89,25 @@ function App() {
       const lower = search.toLowerCase();
       result = result.filter(d => d.Program.toLowerCase().includes(lower));
     }
-    
+
     if (safeOnly && rankStr && !isNaN(Number(rankStr))) {
       const myRank = Number(rankStr);
       result = result.filter(d => myRank <= d.Closing);
     }
-    
+
     // Apply sorting
     result.sort((a, b) => {
       let valA: any = a[sortCol as keyof DataRow];
       let valB: any = b[sortCol as keyof DataRow];
-      
+
       if (sortCol === 'Status') {
-         // Status sorting logic
-         const r = Number(rankStr);
-         const statA = (!isNaN(r) && r <= a.Closing) ? 1 : 0;
-         const statB = (!isNaN(r) && r <= b.Closing) ? 1 : 0;
-         valA = statA; valB = statB;
+        // Status sorting logic
+        const r = Number(rankStr);
+        const statA = (!isNaN(r) && r <= a.Closing) ? 1 : 0;
+        const statB = (!isNaN(r) && r <= b.Closing) ? 1 : 0;
+        valA = statA; valB = statB;
       }
-      
+
       if (typeof valA === 'string' && typeof valB === 'string') {
         return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
       }
@@ -160,7 +162,7 @@ function App() {
   const exportPDF = () => {
     const doc = new jsPDF() as any;
     doc.text("JoSAA Rank Predictions", 14, 15);
-    
+
     const tableColumn = ["Institute", "Program", "Category", "Gender", "Closing", "Min Marks", "Status"];
     const tableRows = filteredData.map(d => [
       d.Institute,
@@ -172,14 +174,14 @@ function App() {
       getStatus(d.Closing)
     ]);
 
-    autoTable(doc, { 
-      head: [tableColumn], 
+    autoTable(doc, {
+      head: [tableColumn],
       body: tableRows,
       startY: 20,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [0, 240, 255] }
     });
-    
+
     doc.save(`josaa_predictions.pdf`);
   };
 
@@ -205,7 +207,7 @@ function App() {
         <div className="section-title">
           <Filter size={18} /> Your Profile
         </div>
-        
+
         <div className="form-group">
           <label>Category</label>
           <select value={category} onChange={e => setCategory(e.target.value)}>
@@ -219,20 +221,20 @@ function App() {
         <div className="row-group">
           <div className="form-group">
             <label>Expected Marks</label>
-            <input 
-              type="number" 
-              placeholder="e.g. 150" 
+            <input
+              type="number"
+              placeholder="e.g. 150"
               value={marksStr}
-              onChange={e => handleMarksChange(e.target.value)} 
+              onChange={e => handleMarksChange(e.target.value)}
             />
           </div>
           <div className="form-group">
             <label>Expected Rank</label>
-            <input 
-              type="number" 
-              placeholder="e.g. 4000" 
+            <input
+              type="number"
+              placeholder="e.g. 4000"
               value={rankStr}
-              onChange={e => handleRankChange(e.target.value)} 
+              onChange={e => handleRankChange(e.target.value)}
             />
           </div>
         </div>
@@ -259,17 +261,17 @@ function App() {
 
         <div className="form-group">
           <label>Search Branch</label>
-          <input 
-            type="text" 
-            placeholder="e.g. Computer Science" 
+          <input
+            type="text"
+            placeholder="e.g. Computer Science"
             value={search}
-            onChange={e => setSearch(e.target.value)} 
+            onChange={e => setSearch(e.target.value)}
           />
         </div>
 
         <label className="checkbox-group">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             checked={safeOnly}
             onChange={e => setSafeOnly(e.target.checked)}
           />
@@ -336,7 +338,7 @@ function App() {
                   let statusClass = 'status-neutral';
                   if (status === 'Safe') statusClass = 'status-safe';
                   else if (status === 'Reach') statusClass = 'status-reach';
-                  
+
                   return (
                     <tr key={idx}>
                       <td style={{ fontWeight: 500, color: '#fff' }}>{row.Institute}</td>
@@ -362,6 +364,7 @@ function App() {
           </table>
         </div>
       </main>
+      <Analytics />
     </div>
   );
 }
