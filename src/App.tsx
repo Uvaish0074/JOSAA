@@ -201,7 +201,7 @@ function App() {
       <aside className="glass-panel">
         <header>
           <h1 className="glow-title">IIT Predictor</h1>
-          <div className="subtitle">JEE Advanced 2026 Engine</div>
+          <div className="subtitle">Based on Actual JoSAA 2025 Data</div>
         </header>
 
         <div className="section-title">
